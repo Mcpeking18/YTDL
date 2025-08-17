@@ -7,9 +7,9 @@ A mp4 downloader using ffmpeg and ytdl module in python
 
 ## Future Plans
 
-add a gui 
-add a choice to download a quality 
-add choice to just download mp3
+- add a gui 
+- add a choice to download a quality 
+- add choice to just download mp3
 
 ---
 

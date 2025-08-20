@@ -2,7 +2,8 @@
 
 # Youtube Downloader 🎯
 
-A mp4 downloader using ffmpeg and ytdl module in python
+A YTDL downloader using ffmpeg and ytdl module in python
+This allows you to download mp3 or mp4 from all the supported sites listed on 
 
 
 ## Future Plans
@@ -15,4 +16,4 @@ A mp4 downloader using ffmpeg and ytdl module in python
 
 ## Author
 
-**MCPEKING18** — Learning Python one Projekt at a time! 🐍
+**MCPEKING18** — Learning Python modules one Projekt at a time! 🐍

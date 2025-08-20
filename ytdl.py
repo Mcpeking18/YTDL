@@ -67,3 +67,9 @@ except Exception as e:
     print(f"❌ Error: {e}")
     with open("errors.txt", "a") as file:
         file.write(f" Error: {e}\n")
+
+
+#add failsafes
+#option to restart 
+#learn gui
+#idk more bs

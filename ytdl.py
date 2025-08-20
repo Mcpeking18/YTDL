@@ -15,49 +15,60 @@ quality_and_type = {
     'video' : ['mp4','bv*+ba/best']
 }
 
-def func_ydl_opts(x):
-    ydl_opts = {
-        'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'),
-        'format': x[1],
-        'postprocessors': [{
-            'key': 'FFmpegVideoConvertor',  
-            'preferedformat': x[0],  
-        }],
-        # 'merge_output_format': user
-    }
-    return ydl_opts
-
-if user == "mp3":
-    ydl_opts = func_ydl_opts(quality_and_type['audio_only'])
-else:
-    ydl_opts = func_ydl_opts(quality_and_type['video'])
+# def func_ydl_opts(x):
+#     ydl_opts = {
+#         'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'),
+#         'format': x[1],
+#         'postprocessors': [{
+#             'key': 'FFmpegVideoConvertor',  
+#             'preferedformat': x[0],  
+#         }],
+#         # 'merge_output_format': user
+#     }
+#     return ydl_opts
 
 # if user == "mp3":
-#     ydl_opts = {
-#         'format': 'ba/best',
-#         'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'),
-#         'postprocessors': [{
-#             'key': 'FFmpegVideoConvertor',  
-#             'preferedformat': 'mp3',  
-#         }]
-#     }
+#     ydl_opts = func_ydl_opts(quality_and_type['audio_only'])
 # else:
-#     ydl_opts = {
-#         'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'), 
-#         'format': 'bv*+ba/best',  
-#         'postprocessors': [{
-#             'key': 'FFmpegVideoConvertor',  
-#             'preferedformat': 'mp4',  
-#         }],
-#         'merge_output_format': 'mp4'
-#     }
+#     ydl_opts = func_ydl_opts(quality_and_type['video'])
 
-with YTDL(ydl_opts) as ydl:
-    info = ydl.extract_info(url)
-    # info['title'] += user
-    # print(info['title'])
-    filename = ydl.prepare_filename(info).replace(info['ext'], user)
+if user == "mp3":
+    ydl_opts = {
+        'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'),
+        'format': 'ba/best',
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',  
+            'preferredcodec': 'mp3',
+            'preferredquality': '192'
+        }]
+    }
+else:
+    ydl_opts = {
+        'outtmpl': os.path.join(temp_path, '%(title)s.%(ext)s'), 
+        'format': 'bv*+ba/best',  
+        'postprocessors': [{
+            'key': 'FFmpegVideoConvertor',  
+            'preferedformat': 'mp4',  
+        }],
+        'merge_output_format': 'mp4'
+    }
 
+# with YTDL(ydl_opts) as ydl:
+#     info = ydl.extract_info(url)
+#     # info['title'] += user
+#     # print(info['title'])
+#     filename = ydl.prepare_filename(info).replace(info['ext'], user)
+
+
+try:
+    with YTDL(ydl_opts) as ydl:
+        print("Downloading...")
+        info = ydl.extract_info(url)
+        # ydl.download([url])
+        filename = ydl.prepare_filename(info).replace(info['ext'], user)
+        print("Download complete.")
+except Exception as e:
+    print(f"An error occurred: {e}")
 
 if os.path.exists(filename):
     shutil.move(filename, output_path)

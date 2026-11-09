@@ -43,17 +43,24 @@ class TestYTDL(unittest.TestCase):
         self.assertEqual(opts["format"], "bestaudio/best")
         self.assertTrue(opts["no_color"])
         self.assertEqual(opts["retries"], 3)
-        self.assertEqual(opts["postprocessors"][0]["preferredcodec"], "mp3")
+        self.assertTrue(opts["writethumbnail"])
+        pp_keys = [p["key"] for p in opts["postprocessors"]]
+        self.assertIn("FFmpegExtractAudio", pp_keys)
+        self.assertIn("EmbedThumbnail", pp_keys)
 
     def test_build_ydl_options_mp4_best(self):
         opts = build_ydl_options("C:/temp_test", "mp4", "best", None)
         self.assertEqual(opts["format"], "bestvideo+bestaudio/best")
         self.assertEqual(opts["merge_output_format"], "mp4")
+        self.assertTrue(opts["writethumbnail"])
+        pp_keys = [p["key"] for p in opts["postprocessors"]]
+        self.assertIn("EmbedThumbnail", pp_keys)
 
     def test_build_ydl_options_mp4_resolution(self):
         opts = build_ydl_options("C:/temp_test", "mp4", "720p", None)
         self.assertIn("height<=720", opts["format"])
         self.assertEqual(opts["merge_output_format"], "mp4")
+        self.assertTrue(opts["writethumbnail"])
 
     def test_clean_error_message(self):
         raw_error = "\x1b[0;31mERROR:\x1b[0m [generic] 'fdsff' is not a valid URL"
@@ -115,6 +122,23 @@ class TestYTDL(unittest.TestCase):
         # Verify initial preview state
         self.assertEqual(app.preview_title.cget("text"), "No video loaded")
 
+        if app._preview_timer:
+            app.after_cancel(app._preview_timer)
+        app.withdraw()
+        app.update()
+        app.destroy()
+
+    def test_invalid_folder_does_not_create_directory(self):
+        app = YTDLApp()
+        fake_path = Path("C:/NonExistentTestFolder_12345")
+        self.assertFalse(fake_path.exists())
+        app.url_var.set("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+        app.output_dir_var.set(str(fake_path))
+        app.start_download_thread()
+        self.assertIn("Folder does not exist", app.status_label.cget("text"))
+        self.assertFalse(fake_path.exists())
+        if app._preview_timer:
+            app.after_cancel(app._preview_timer)
         app.withdraw()
         app.update()
         app.destroy()

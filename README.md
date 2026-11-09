@@ -1,7 +1,8 @@
-# 🎥 YT-DLP Downloader (Python)
-
-A simple, beautiful YouTube (and other supported sites) downloader made with **[yt-dlp](https://github.com/yt-dlp/yt-dlp)**, **FFmpeg**, and **CustomTkinter** in Python.  
-It features a modern dark-mode Graphical User Interface (GUI) to let you easily download **audio (mp3)** or **video (mp4)** and saves them into your chosen folder.
+<div align="center">
+  <img src="assets/logo.png" width="140" alt="YTDL Logo" style="border-radius: 16px;" />
+  <h1>YTDL - YouTube Downloader</h1>
+  <p>A simple, modern YouTube (and media) downloader with live video preview, automatic album art embedding, and dark mode GUI.</p>
+</div>
 
 ---
 

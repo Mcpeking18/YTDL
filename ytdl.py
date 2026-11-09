@@ -1,7 +1,9 @@
+import ctypes
 import io
 import os
 import re
 import shutil
+import sys
 import tempfile
 import threading
 import time
@@ -12,6 +14,13 @@ from tkinter import filedialog
 import customtkinter as ctk
 from PIL import Image, ImageDraw
 from yt_dlp import YoutubeDL
+
+# Enable custom app icon on the Windows taskbar
+try:
+    if sys.platform.startswith("win"):
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("mcpeking.ytdl.app.1.0")
+except Exception:
+    pass
 
 # --- YouTube Theme Palette ---
 COLOR_BG = "#0f0f0f"            # YouTube Dark Canvas
@@ -187,24 +196,47 @@ class YTDLApp(ctk.CTk):
         ctk.set_appearance_mode("dark")
         self.configure(fg_color=COLOR_BG)
 
+        # Set window and taskbar icon
+        icon_path = Path(__file__).parent / "assets" / "icon.ico"
+        if icon_path.exists():
+            try:
+                self.iconbitmap(str(icon_path))
+            except Exception:
+                pass
+
         self._preview_timer = None
         self._current_preview_url = ""
 
-        # Header with YouTube red play badge
+        # Header with character logo
         self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.header_frame.pack(pady=(18, 12))
 
-        self.logo_badge = ctk.CTkLabel(
-            self.header_frame,
-            text=" ▶ ",
-            fg_color=COLOR_RED,
-            text_color=COLOR_TEXT_PRIMARY,
-            corner_radius=6,
-            font=ctk.CTkFont(size=14, weight="bold"),
-            width=36,
-            height=26,
-        )
-        self.logo_badge.pack(side="left", padx=(0, 10))
+        logo_path = Path(__file__).parent / "assets" / "logo.png"
+        if logo_path.exists():
+            logo_pil = Image.open(logo_path)
+            self.app_logo_image = ctk.CTkImage(
+                light_image=logo_pil,
+                dark_image=logo_pil,
+                size=(36, 36),
+            )
+            self.logo_badge = ctk.CTkLabel(
+                self.header_frame,
+                image=self.app_logo_image,
+                text="",
+            )
+            self.logo_badge.pack(side="left", padx=(0, 10))
+        else:
+            self.logo_badge = ctk.CTkLabel(
+                self.header_frame,
+                text=" ▶ ",
+                fg_color=COLOR_RED,
+                text_color=COLOR_TEXT_PRIMARY,
+                corner_radius=6,
+                font=ctk.CTkFont(size=14, weight="bold"),
+                width=36,
+                height=26,
+            )
+            self.logo_badge.pack(side="left", padx=(0, 10))
 
         self.title_label = ctk.CTkLabel(
             self.header_frame,

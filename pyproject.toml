@@ -1,0 +1,13 @@
+[project]
+name = "ytdl"
+version = "0.1.0"
+description = "YouTube audio and video downloader with a modern dark-mode GUI"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "customtkinter>=6.0.0",
+    "yt-dlp>=2026.10.26",
+]
+
+[project.scripts]
+ytdl = "ytdl:main"

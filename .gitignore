@@ -1,0 +1,27 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Download artifacts, logs & media files
+errors.txt
+*.part
+*.ytdl
+*.mp3
+*.mp4
+*.m4a
+*.webm
+*.mkv
+*.opus
+
+# Editor & OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini

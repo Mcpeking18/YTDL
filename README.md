@@ -9,38 +9,47 @@ It features a modern dark-mode Graphical User Interface (GUI) to let you easily 
 - **Modern GUI**: Built with `customtkinter` for a sleek, dark-themed experience.
 - **Format Options**: Choose between **Audio (mp3)** or **Video (mp4)**.
 - **Quality Selection**: Pick your preferred video resolution (e.g., Best, 1080p, 720p, 480p, 360p).
-- **Live Progress Bar**: See exactly how far along your download is.
-- **Bulletproof Failsafes**: 
-  - Downloads to a temporary folder (`C:/Temp`) for speed, then safely moves finished files to your final destination (`D:/Desktop`).
-  - Auto-renames files to prevent overwriting existing videos on your Desktop.
-  - Ignores partial or broken downloads.
-  - Automatic retry mechanism (up to 3 times) for network interruptions.
+- **Custom Destination**: Choose any destination directory directly from the UI (defaults to your Desktop).
+- **Live Progress Bar**: See real-time download and processing progress.
+- **Failsafes & Data Protection**:
+  - Downloads in an isolated temporary directory and cleanly moves completed files upon finish.
+  - Auto-renames files (`(1)`, `(2)`, etc.) to prevent overwriting existing files in your folder.
+  - Automatically cleans up partial/interrupted files on failure.
+  - Built-in retry handling for network drops.
 
 ## 🛠️ Requirements
 
-- **Python 3.9+**
+- **Python 3.11+**
 - **yt-dlp** and **customtkinter**
 ```bash
 pip install yt-dlp customtkinter
 ```
+*(Alternatively, use `uv run ytdl.py` or `uv sync`)*
 
 - **FFmpeg** (must be installed & available in PATH)
 
 ## 🚀 Usage
 1. Clone or download this repo.
-2. Run the script: 
+2. Run the application: 
    ```bash
-   python ytdl.py
+   uv run ytdl.py
+   # or: python ytdl.py
    ```
-3. The GUI window will open. Paste your video URL.
-4. Select your format and desired quality.
-5. Click **Download**!
+3. The GUI window will open:
+   - Paste your video URL.
+   - Choose or browse to your preferred destination folder.
+   - Select your format (Audio MP3 or Video MP4) and quality.
+4. Click **Download**!
 
-*Note: Files will be downloaded to `C:/Temp` first, then automatically moved to `D:/Desktop` when finished (you can change these paths at the top of the `ytdl.py` file).*
+## 🧪 Tests
+To run the automated test suite:
+```bash
+python -m unittest test_ytdl.py
+```
 
 ## 🧩 Future Plans
-- Allow changing download folder directly from the UI
 - Add playlist downloading support
+- Download history tab
 
 # 👨‍💻 Author
 **MCPEKING18** — learning Python modules one projekt at a time 🐍

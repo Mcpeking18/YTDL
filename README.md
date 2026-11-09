@@ -8,6 +8,7 @@ It features a modern dark-mode Graphical User Interface (GUI) to let you easily 
 ## ✨ Features
 - **Modern YouTube Darkroom GUI**: Built with `customtkinter` with an authentic YouTube dark aesthetic.
 - **Live Video Preview**: Automatically fetches the video thumbnail, title, channel name, and duration as soon as you paste a URL.
+- **Embedded Cover Art & Metadata**: Automatically embeds the highest-quality thumbnail directly into downloaded files (album cover art for MP3s and poster artwork for MP4 videos).
 - **Format Options**: Choose between **Audio (mp3)** or **Video (mp4)** with modern segmented toggle controls.
 - **Quality Selection**: Pick your preferred video resolution (e.g., Best, 1080p, 720p, 480p, 360p).
 - **Custom Destination**: Choose any destination directory directly from the UI (defaults to your Desktop).

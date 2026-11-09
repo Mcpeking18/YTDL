@@ -6,11 +6,12 @@ It features a modern dark-mode Graphical User Interface (GUI) to let you easily 
 ---
 
 ## ✨ Features
-- **Modern GUI**: Built with `customtkinter` for a sleek, dark-themed experience.
-- **Format Options**: Choose between **Audio (mp3)** or **Video (mp4)**.
+- **Modern YouTube Darkroom GUI**: Built with `customtkinter` with an authentic YouTube dark aesthetic.
+- **Live Video Preview**: Automatically fetches the video thumbnail, title, channel name, and duration as soon as you paste a URL.
+- **Format Options**: Choose between **Audio (mp3)** or **Video (mp4)** with modern segmented toggle controls.
 - **Quality Selection**: Pick your preferred video resolution (e.g., Best, 1080p, 720p, 480p, 360p).
 - **Custom Destination**: Choose any destination directory directly from the UI (defaults to your Desktop).
-- **Live Progress Bar**: See real-time download and processing progress.
+- **Live Progress Bar & Status Pill**: See real-time download and processing progress.
 - **Failsafes & Data Protection**:
   - Downloads in an isolated temporary directory and cleanly moves completed files upon finish.
   - Auto-renames files (`(1)`, `(2)`, etc.) to prevent overwriting existing files in your folder.
@@ -20,9 +21,9 @@ It features a modern dark-mode Graphical User Interface (GUI) to let you easily 
 ## 🛠️ Requirements
 
 - **Python 3.11+**
-- **yt-dlp** and **customtkinter**
+- **yt-dlp**, **customtkinter**, and **pillow**
 ```bash
-pip install yt-dlp customtkinter
+pip install yt-dlp customtkinter pillow
 ```
 *(Alternatively, use `uv run ytdl.py` or `uv sync`)*
 

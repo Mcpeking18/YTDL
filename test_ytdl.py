@@ -7,6 +7,9 @@ from ytdl import (
     YTDLApp,
     build_ydl_options,
     clean_error_message,
+    create_placeholder_image,
+    extract_youtube_video_id,
+    format_duration,
     get_default_download_dir,
     resolve_unique_path,
 )
@@ -57,8 +60,32 @@ class TestYTDL(unittest.TestCase):
         cleaned = clean_error_message(raw_error)
         self.assertEqual(cleaned, "[generic] 'fdsff' is not a valid URL")
 
+    def test_extract_youtube_video_id(self):
+        self.assertEqual(
+            extract_youtube_video_id("https://www.youtube.com/watch?v=dQw4w9WgXcQ"),
+            "dQw4w9WgXcQ",
+        )
+        self.assertEqual(
+            extract_youtube_video_id("https://youtu.be/dQw4w9WgXcQ"),
+            "dQw4w9WgXcQ",
+        )
+        self.assertEqual(
+            extract_youtube_video_id("https://www.youtube.com/shorts/dQw4w9WgXcQ"),
+            "dQw4w9WgXcQ",
+        )
+        self.assertIsNone(extract_youtube_video_id("https://vimeo.com/1234567"))
+
+    def test_format_duration(self):
+        self.assertEqual(format_duration(65), "1:05")
+        self.assertEqual(format_duration(3665), "1:01:05")
+        self.assertEqual(format_duration(0), "")
+        self.assertEqual(format_duration(None), "")
+
+    def test_create_placeholder_image(self):
+        img = create_placeholder_image(160, 90)
+        self.assertEqual(img.size, (160, 90))
+
     def test_progress_calculation(self):
-        # Emulate yt-dlp dictionary with total_bytes = None
         d = {
             "status": "downloading",
             "downloaded_bytes": 500,
@@ -72,18 +99,21 @@ class TestYTDL(unittest.TestCase):
 
     def test_app_lifecycle(self):
         app = YTDLApp()
-        self.assertEqual(app.format_var.get(), "mp3")
+        self.assertEqual(app.format_var.get(), "Audio (MP3)")
         self.assertEqual(app.quality_dropdown.cget("state"), "disabled")
 
-        # Switch to MP4
-        app.format_var.set("mp4")
+        # Switch to Video (MP4)
+        app.format_var.set("Video (MP4)")
         app.toggle_quality()
         self.assertEqual(app.quality_dropdown.cget("state"), "normal")
 
-        # Switch back to MP3
-        app.format_var.set("mp3")
+        # Switch back to Audio (MP3)
+        app.format_var.set("Audio (MP3)")
         app.toggle_quality()
         self.assertEqual(app.quality_dropdown.cget("state"), "disabled")
+
+        # Verify initial preview state
+        self.assertEqual(app.preview_title.cget("text"), "No video loaded")
 
         app.withdraw()
         app.update()
@@ -92,4 +122,3 @@ class TestYTDL(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

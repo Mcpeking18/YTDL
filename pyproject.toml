@@ -7,11 +7,13 @@ requires-python = ">=3.11"
 dependencies = [
     "customtkinter>=6.0.0",
     "pillow>=13.0.0",
+    "pywebview>=6.2.1",
     "yt-dlp>=2026.10.26",
 ]
 
 [project.scripts]
 ytdl = "ytdl:main"
+ytdl-web = "ytdl_web:main"
 
 [build-system]
 requires = ["hatchling"]

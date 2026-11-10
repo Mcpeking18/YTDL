@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Downloader</title>
+  <!-- Tailwind CSS via CDN for rapid, responsive styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            yt: {
+              red: '#ff0000',
+              redHover: '#cc0000',
+              canvas: '#0f0f0f',
+              card: '#181818',
+              cardBorder: '#282828',
+              input: '#121212',
+              inputBorder: '#333333',
+              secondary: '#272727',
+              secondaryHover: '#383838',
+              muted: '#717171',
+              subtext: '#aaaaaa',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-yt-canvas text-white font-sans antialiased min-h-screen select-none flex flex-col justify-between p-5">
+
+  <div class="max-w-xl w-full mx-auto space-y-4">
+
+    <!-- Top Header -->
+    <header class="flex items-center justify-between pb-1 pt-1">
+      <div class="flex items-center gap-3">
+        <img src="../assets/logo.png" alt="Logo" class="w-9 h-9 rounded-full object-cover shadow-md border border-yt-cardBorder" onerror="this.src='https://placehold.co/36x36/red/white?text=▶'" />
+        <div>
+          <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
+            YouTube Downloader
+            <span class="text-[10px] bg-yt-red/20 text-yt-red border border-yt-red/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">WebUI</span>
+          </h1>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex items-center gap-1 bg-yt-card border border-yt-cardBorder p-1 rounded-xl">
+        <button id="tab-btn-downloader" class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200">
+          Downloader
+        </button>
+        <button id="tab-btn-history" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-yt-subtext hover:text-white transition-all duration-200 flex items-center gap-1.5">
+          History
+          <span id="history-badge" class="bg-yt-secondary text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Startup Warning: FFmpeg Missing (Hidden by default) -->
+    <div id="ffmpeg-banner" class="hidden bg-amber-950/70 border border-amber-600/60 rounded-xl p-3 flex items-start gap-3 text-amber-200 text-xs shadow-lg animate-fade-in">
+      <span class="text-base">⚠️</span>
+      <div>
+        <p class="font-bold">FFmpeg is missing from PATH</p>
+        <p class="text-amber-300/80 mt-0.5">MP3 audio conversion and 1080p+ video muxing will fail until FFmpeg is installed.</p>
+      </div>
+    </div>
+
+    <!-- MAIN VIEW: DOWNLOADER -->
+    <main id="view-downloader" class="space-y-4">
+
+      <!-- Main Card Surface -->
+      <div class="bg-yt-card/90 backdrop-blur-md border border-yt-cardBorder rounded-2xl p-5 shadow-2xl space-y-4">
+
+        <!-- 1. URL Input & Paste Button -->
+        <div class="space-y-1.5">
+          <label for="url-input" class="text-xs font-bold text-yt-subtext uppercase tracking-wider block">Video or Playlist URL</label>
+          <div class="relative flex items-center gap-2">
+            <div class="relative flex-1">
+              <input 
+                id="url-input" 
+                type="text" 
+                placeholder="Paste YouTube link here..." 
+                autocomplete="off" 
+                spellcheck="false"
+                class="w-full bg-yt-input border border-yt-inputBorder rounded-xl px-4 py-2.5 text-sm text-white placeholder-yt-muted focus:outline-none focus:border-yt-red transition-all duration-200 pr-10"
+              />
+              <button id="clear-url-btn" class="hidden absolute right-3 top-2.5 text-yt-muted hover:text-white text-xs p-1">
+                ✕
+              </button>
+            </div>
+            <button id="paste-btn" class="bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 border border-yt-inputBorder text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition-all duration-200 flex items-center gap-1.5 flex-shrink-0">
+              <span>📋</span> Paste
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Preview Card (16:9 Thumbnail + Title + Details) -->
+        <div id="preview-card" class="bg-yt-input border border-yt-cardBorder rounded-xl p-3 flex items-center gap-3.5 transition-all duration-300">
+          <div class="relative w-36 h-20 bg-neutral-900 rounded-lg overflow-hidden flex-shrink-0 flex items-center justify-center border border-yt-cardBorder/60">
+            <img id="preview-thumbnail" src="" alt="Thumbnail" class="w-full h-full object-cover hidden" />
+            <div id="preview-placeholder-icon" class="text-yt-muted text-xl">▶</div>
+            <div id="preview-loading-spinner" class="hidden absolute inset-0 bg-black/60 flex items-center justify-center">
+              <div class="w-5 h-5 border-2 border-yt-red border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </div>
+          <div class="flex-1 min-w-0 space-y-1">
+            <h3 id="preview-title" class="text-sm font-bold text-white truncate">No video loaded</h3>
+            <p id="preview-details" class="text-xs text-yt-muted truncate">Paste a YouTube link above to preview</p>
+            <div id="preview-badge-row" class="pt-0.5 flex items-center gap-2">
+              <span id="preview-type-badge" class="hidden text-[10px] bg-neutral-800 text-yt-subtext border border-neutral-700 px-2 py-0.5 rounded-md font-medium">Video</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Destination Folder Selector -->
+        <div class="space-y-1.5">
+          <label for="folder-input" class="text-xs font-bold text-yt-subtext uppercase tracking-wider block">Save Destination</label>
+          <div class="flex items-center gap-2">
+            <input 
+              id="folder-input" 
+              type="text" 
+              readonly 
+              class="flex-1 bg-yt-input border border-yt-inputBorder rounded-xl px-4 py-2 text-xs text-yt-subtext font-mono truncate focus:outline-none"
+            />
+            <button id="browse-btn" class="bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 border border-yt-inputBorder text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-200 flex-shrink-0">
+              Browse
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. Format & Quality Controls -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-yt-subtext uppercase tracking-wider block">Format & Quality</label>
+          <div class="grid grid-cols-2 gap-3">
+            
+            <!-- Segmented Format Buttons -->
+            <div class="bg-yt-input p-1 rounded-xl border border-yt-cardBorder flex gap-1">
+              <button id="fmt-audio-btn" class="fmt-btn flex-1 py-1.5 text-xs font-semibold rounded-lg bg-yt-red text-white shadow transition-all duration-200">
+                Audio (MP3)
+              </button>
+              <button id="fmt-video-btn" class="fmt-btn flex-1 py-1.5 text-xs font-semibold rounded-lg text-yt-subtext hover:text-white transition-all duration-200">
+                Video (MP4)
+              </button>
+            </div>
+
+            <!-- Quality / Bitrate Dropdown -->
+            <div class="relative">
+              <select id="quality-select" class="w-full bg-yt-input border border-yt-cardBorder rounded-xl px-3 py-2 text-xs font-medium text-white focus:outline-none focus:border-yt-red cursor-pointer appearance-none transition-all duration-200">
+                <option value="320 kbps (High)">320 kbps (High)</option>
+                <option value="256 kbps">256 kbps</option>
+                <option value="192 kbps (Standard)">192 kbps (Standard)</option>
+                <option value="128 kbps (Compact)">128 kbps (Compact)</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-yt-muted text-xs">▼</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 5. Primary Download Button -->
+        <button id="download-btn" class="w-full bg-yt-red hover:bg-yt-redHover active:scale-[0.99] text-white font-bold py-3 px-6 rounded-full text-sm shadow-lg shadow-yt-red/20 transition-all duration-200 flex items-center justify-center gap-2 group">
+          <span id="download-btn-icon">⚡</span>
+          <span id="download-btn-text">Download Now</span>
+        </button>
+
+        <!-- 6. Progress Bar -->
+        <div class="space-y-1.5">
+          <div class="w-full bg-yt-input rounded-full h-2 overflow-hidden border border-yt-cardBorder/40">
+            <div id="progress-fill" class="bg-yt-red h-full w-0 transition-all duration-200 rounded-full shadow-sm"></div>
+          </div>
+        </div>
+
+        <!-- 7. Status Pill & "Open Folder" Action -->
+        <div id="status-card" class="bg-yt-input border border-yt-cardBorder rounded-xl px-4 py-2.5 flex items-center justify-between text-xs transition-all duration-200">
+          <div class="flex items-center gap-2 overflow-hidden mr-2">
+            <span id="status-dot" class="w-2 h-2 rounded-full bg-neutral-500 flex-shrink-0"></span>
+            <span id="status-text" class="text-yt-subtext truncate">Ready to download</span>
+          </div>
+          <button id="open-folder-btn" class="hidden bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 text-white border border-yt-inputBorder px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1 flex-shrink-0 animate-fade-in">
+            <span>📂</span> Show in Folder
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- SECONDARY VIEW: HISTORY -->
+    <section id="view-history" class="hidden space-y-4">
+      <div class="bg-yt-card border border-yt-cardBorder rounded-2xl p-5 shadow-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-yt-cardBorder pb-3">
+          <div>
+            <h2 class="text-base font-bold text-white">Download History</h2>
+            <p class="text-xs text-yt-muted">Your recent downloads on this device</p>
+          </div>
+          <button id="clear-history-btn" class="text-xs bg-red-950/60 hover:bg-red-900/80 text-red-300 border border-red-800/50 px-3 py-1.5 rounded-lg transition-all duration-200 font-medium">
+            Clear All
+          </button>
+        </div>
+
+        <!-- History Items Scrollable Container -->
+        <div id="history-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+          <!-- Populated dynamically via JS -->
+          <div class="text-center py-12 text-yt-muted text-xs">
+            No downloads recorded yet.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center text-[11px] text-yt-muted pt-1">
+      Safe downloads directly to your device • No overwrite guarantee
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

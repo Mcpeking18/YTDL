@@ -36,22 +36,25 @@ pip install yt-dlp customtkinter pillow
 - **FFmpeg** (must be installed & available in PATH)
 
 ## 🚀 Usage
-1. Clone or download this repo.
-2. Run the application: 
-   ```bash
-   uv run ytdl.py
-   # or: python ytdl.py
-   ```
-3. The GUI window will open:
-   - Paste your video URL.
-   - Choose or browse to your preferred destination folder.
-   - Select your format (Audio MP3 or Video MP4) and quality.
-4. Click **Download**!
+
+### 1. Modern WebUI Desktop Client (Figma & HTML/Tailwind)
+```bash
+uv run ytdl-web
+# or: uv run python ytdl_web.py
+```
+*Opens a sleek borderless native desktop window powered by WebView2 with Tailwind CSS, live debounced preview, animated progress/speed/ETA, and download history.*
+
+### 2. Classic CustomTkinter Desktop Client
+```bash
+uv run ytdl
+# or: uv run python ytdl.py
+```
+*Runs the classic Python CustomTkinter desktop interface.*
 
 ## 🧪 Tests
-To run the automated test suite:
+To run the automated test suite across all modules:
 ```bash
-python -m unittest test_ytdl.py
+uv run python -m unittest discover
 ```
 
 ## 🧩 Future Plans

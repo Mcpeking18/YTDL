@@ -6,12 +6,18 @@ from pathlib import Path
 from ytdl import (
     YTDLApp,
     build_ydl_options,
+    check_ffmpeg,
     clean_error_message,
+    clear_history_file,
     create_placeholder_image,
+    extract_bitrate_number,
     extract_youtube_video_id,
     format_duration,
     get_default_download_dir,
+    is_playlist_url,
+    load_history,
     resolve_unique_path,
+    save_history_entry,
 )
 
 
@@ -38,18 +44,36 @@ class TestYTDL(unittest.TestCase):
             target2 = resolve_unique_path(tmp_path, "sample.mp4")
             self.assertEqual(target2.name, "sample (2).mp4")
 
-    def test_build_ydl_options_mp3(self):
-        opts = build_ydl_options("C:/temp_test", "mp3", "best", None)
+    def test_check_ffmpeg(self):
+        # Checks function returns a boolean without throwing
+        res = check_ffmpeg()
+        self.assertIsInstance(res, bool)
+
+    def test_extract_bitrate_number(self):
+        self.assertEqual(extract_bitrate_number("320 kbps (High)"), "320")
+        self.assertEqual(extract_bitrate_number("256 kbps"), "256")
+        self.assertEqual(extract_bitrate_number("192 kbps (Standard)"), "192")
+        self.assertEqual(extract_bitrate_number("128 kbps (Compact)"), "128")
+        self.assertEqual(extract_bitrate_number("unknown"), "192")
+
+    def test_is_playlist_url(self):
+        self.assertTrue(is_playlist_url("https://www.youtube.com/playlist?list=PL1234567890"))
+        self.assertTrue(is_playlist_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PL1234567890"))
+        self.assertFalse(is_playlist_url("https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+
+    def test_build_ydl_options_mp3_bitrate(self):
+        opts = build_ydl_options("C:/temp_test", "mp3", "320 kbps (High)", None)
         self.assertEqual(opts["format"], "bestaudio/best")
         self.assertTrue(opts["no_color"])
         self.assertEqual(opts["retries"], 3)
         self.assertTrue(opts["writethumbnail"])
-        pp_keys = [p["key"] for p in opts["postprocessors"]]
-        self.assertIn("FFmpegExtractAudio", pp_keys)
-        self.assertIn("EmbedThumbnail", pp_keys)
+        self.assertTrue(opts["ignoreerrors"])
+
+        audio_pp = [p for p in opts["postprocessors"] if p.get("key") == "FFmpegExtractAudio"][0]
+        self.assertEqual(audio_pp["preferredquality"], "320")
 
     def test_build_ydl_options_mp4_best(self):
-        opts = build_ydl_options("C:/temp_test", "mp4", "best", None)
+        opts = build_ydl_options("C:/temp_test", "mp4", "Best Available", None)
         self.assertEqual(opts["format"], "bestvideo+bestaudio/best")
         self.assertEqual(opts["merge_output_format"], "mp4")
         self.assertTrue(opts["writethumbnail"])
@@ -92,32 +116,33 @@ class TestYTDL(unittest.TestCase):
         img = create_placeholder_image(160, 90)
         self.assertEqual(img.size, (160, 90))
 
-    def test_progress_calculation(self):
-        d = {
-            "status": "downloading",
-            "downloaded_bytes": 500,
-            "total_bytes": None,
-            "total_bytes_estimate": 1000,
-        }
-        downloaded = d.get("downloaded_bytes") or 0
-        total = d.get("total_bytes") or d.get("total_bytes_estimate") or 0
-        self.assertEqual(total, 1000)
-        self.assertEqual(downloaded / total, 0.5)
+    def test_history_operations(self):
+        clear_history_file()
+        self.assertEqual(load_history(), [])
+
+        save_history_entry("Test Track", "Audio (320 kbps)", Path("D:/Desktop/Test.mp3"))
+        hist = load_history()
+        self.assertEqual(len(hist), 1)
+        self.assertEqual(hist[0]["title"], "Test Track")
+        self.assertEqual(hist[0]["format"], "Audio (320 kbps)")
+
+        clear_history_file()
+        self.assertEqual(load_history(), [])
 
     def test_app_lifecycle(self):
         app = YTDLApp()
         self.assertEqual(app.format_var.get(), "Audio (MP3)")
-        self.assertEqual(app.quality_dropdown.cget("state"), "disabled")
+        self.assertIn("320", app.quality_var.get())
 
         # Switch to Video (MP4)
         app.format_var.set("Video (MP4)")
         app.toggle_quality()
-        self.assertEqual(app.quality_dropdown.cget("state"), "normal")
+        self.assertEqual(app.quality_var.get(), "Best Available")
 
         # Switch back to Audio (MP3)
         app.format_var.set("Audio (MP3)")
         app.toggle_quality()
-        self.assertEqual(app.quality_dropdown.cget("state"), "disabled")
+        self.assertEqual(app.quality_var.get(), "320 kbps (High)")
 
         # Verify initial preview state
         self.assertEqual(app.preview_title.cget("text"), "No video loaded")

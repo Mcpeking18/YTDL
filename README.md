@@ -7,18 +7,22 @@
 ---
 
 ## ✨ Features
-- **Modern YouTube Darkroom GUI**: Built with `customtkinter` with an authentic YouTube dark aesthetic.
-- **Live Video Preview**: Automatically fetches the video thumbnail, title, channel name, and duration as soon as you paste a URL.
-- **Embedded Cover Art & Metadata**: Automatically embeds the highest-quality thumbnail directly into downloaded files (album cover art for MP3s and poster artwork for MP4 videos).
-- **Format Options**: Choose between **Audio (mp3)** or **Video (mp4)** with modern segmented toggle controls.
-- **Quality Selection**: Pick your preferred video resolution (e.g., Best, 1080p, 720p, 480p, 360p).
-- **Custom Destination**: Choose any destination directory directly from the UI (defaults to your Desktop).
-- **Live Progress Bar & Status Pill**: See real-time download and processing progress.
+- **Modern YouTube Darkroom GUI**: Built with `customtkinter` with an authentic YouTube dark aesthetic and custom taskbar branding.
+- **One-Click Paste**: Quick `📋 Paste` button to instantly grab YouTube links from your clipboard.
+- **Live Video & Playlist Preview**: Automatically debounces and fetches thumbnails, title, channel name, and duration or playlist track count.
+- **Embedded Cover Art & Metadata**: Embeds the highest-quality thumbnail directly into downloaded files (album cover art for MP3s and poster artwork for MP4 videos).
+- **Audio Bitrate Selection**: Choose your preferred audio bitrate (**320 kbps**, **256 kbps**, **192 kbps**, **128 kbps**).
+- **Video Resolution Selection**: Pick your preferred resolution (**Best Available**, **1080p**, **720p**, **480p**, **360p**).
+- **Full Playlist Support**: Download complete YouTube playlists out of the box (no cookies required for public or unlisted playlists).
+- **Download Speed & ETA**: Real-time progress bar showing download percentage, transfer speed, and estimated time remaining.
+- **One-Click "Show in Folder"**: Instantly highlight and inspect downloaded files in Windows Explorer upon completion.
+- **Download History**: Keep track of recent downloads with a dedicated `📜 History` viewer and 1-click folder opening.
+- **Startup FFmpeg Pre-Check**: Checks for FFmpeg availability on launch and warns if missing.
 - **Failsafes & Data Protection**:
-  - Downloads in an isolated temporary directory and cleanly moves completed files upon finish.
-  - Auto-renames files (`(1)`, `(2)`, etc.) to prevent overwriting existing files in your folder.
-  - Automatically cleans up partial/interrupted files on failure.
-  - Built-in retry handling for network drops.
+  - Downloads in an isolated temporary sandbox and safely moves finished files.
+  - Resolves filenames collision-free (`(1)`, `(2)`, etc.) so existing files are never overwritten.
+  - Strict directory validation: never creates unexpected folders and warns if a target path is invalid.
+  - Auto-cleans up partial/interrupted files on failure.
 
 ## 🛠️ Requirements
 
@@ -51,8 +55,8 @@ python -m unittest test_ytdl.py
 ```
 
 ## 🧩 Future Plans
-- Add playlist downloading support
-- Download history tab
+- Modern Web UI / Figma-driven desktop client
+- Batch queue management
 
 # 👨‍💻 Author
 **MCPEKING18** — learning Python modules one projekt at a time 🐍

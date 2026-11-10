@@ -11,6 +11,7 @@ env/
 
 # Download artifacts, logs & media files
 errors.txt
+history.json
 *.part
 *.ytdl
 *.mp3

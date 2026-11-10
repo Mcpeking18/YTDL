@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>YouTube Downloader</title>
-  <!-- Tailwind CSS via CDN for rapid, responsive styling -->
+  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -30,20 +30,20 @@
       }
     }
   </script>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
-<body class="bg-yt-canvas text-white font-sans antialiased min-h-screen select-none flex flex-col justify-between p-5">
+<body class="bg-yt-canvas text-white font-sans antialiased min-h-screen select-none flex flex-col justify-between p-4 sm:p-6">
 
   <div class="max-w-xl w-full mx-auto space-y-4">
 
     <!-- Top Header -->
-    <header class="flex items-center justify-between pb-1 pt-1">
+    <header class="flex items-center justify-between pb-1">
       <div class="flex items-center gap-3">
-        <img src="../assets/logo.png" alt="Logo" class="w-9 h-9 rounded-full object-cover shadow-md border border-yt-cardBorder" onerror="this.src='https://placehold.co/36x36/red/white?text=▶'" />
+        <img src="/assets/logo.png" alt="Logo" class="w-9 h-9 rounded-full object-cover shadow-md border border-yt-cardBorder" onerror="this.src='https://placehold.co/36x36/red/white?text=▶'" />
         <div>
           <h1 class="text-xl font-bold tracking-tight flex items-center gap-2">
             YouTube Downloader
-            <span class="text-[10px] bg-yt-red/20 text-yt-red border border-yt-red/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">WebUI</span>
+            <span class="text-[10px] bg-yt-red/20 text-yt-red border border-yt-red/40 px-2 py-0.5 rounded-full font-mono uppercase tracking-wider">Live</span>
           </h1>
         </div>
       </div>
@@ -116,19 +116,26 @@
           </div>
         </div>
 
-        <!-- 3. Destination Folder Selector -->
+        <!-- 3. Destination Folder Selector & Presets -->
         <div class="space-y-1.5">
-          <label for="folder-input" class="text-xs font-bold text-yt-subtext uppercase tracking-wider block">Save Destination</label>
+          <div class="flex items-center justify-between">
+            <label for="folder-input" class="text-xs font-bold text-yt-subtext uppercase tracking-wider block">Save Destination</label>
+            <span class="text-[11px] text-yt-muted">Never overwrites files</span>
+          </div>
           <div class="flex items-center gap-2">
             <input 
               id="folder-input" 
               type="text" 
-              readonly 
-              class="flex-1 bg-yt-input border border-yt-inputBorder rounded-xl px-4 py-2 text-xs text-yt-subtext font-mono truncate focus:outline-none"
+              placeholder="D:\Desktop"
+              class="flex-1 bg-yt-input border border-yt-inputBorder rounded-xl px-4 py-2 text-xs text-white font-mono truncate focus:outline-none focus:border-yt-red transition-all duration-200"
             />
-            <button id="browse-btn" class="bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 border border-yt-inputBorder text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-200 flex-shrink-0">
-              Browse
+            <button id="browse-btn" class="bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 border border-yt-inputBorder text-white text-xs font-semibold px-4 py-2 rounded-xl transition-all duration-200 flex-shrink-0 flex items-center gap-1.5">
+              <span>📁</span> Browse
             </button>
+          </div>
+          <!-- Quick Preset Chips -->
+          <div id="folder-presets-container" class="flex flex-wrap items-center gap-1.5 pt-1">
+            <!-- Dynamically populated or defaults -->
           </div>
         </div>
 
@@ -180,7 +187,7 @@
             <span id="status-dot" class="w-2 h-2 rounded-full bg-neutral-500 flex-shrink-0"></span>
             <span id="status-text" class="text-yt-subtext truncate">Ready to download</span>
           </div>
-          <button id="open-folder-btn" class="hidden bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 text-white border border-yt-inputBorder px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1 flex-shrink-0 animate-fade-in">
+          <button id="open-folder-btn" class="hidden bg-yt-secondary hover:bg-yt-secondaryHover active:scale-95 text-white border border-yt-inputBorder px-3 py-1 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-1.5 flex-shrink-0 animate-fade-in">
             <span>📂</span> Show in Folder
           </button>
         </div>
@@ -204,7 +211,6 @@
 
         <!-- History Items Scrollable Container -->
         <div id="history-list" class="space-y-2 max-h-[380px] overflow-y-auto pr-1">
-          <!-- Populated dynamically via JS -->
           <div class="text-center py-12 text-yt-muted text-xs">
             No downloads recorded yet.
           </div>
@@ -219,6 +225,6 @@
 
   </div>
 
-  <script src="app.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

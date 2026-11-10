@@ -37,12 +37,12 @@ pip install yt-dlp customtkinter pillow
 
 ## 🚀 Usage
 
-### 1. Modern WebUI Desktop Client (Figma & HTML/Tailwind)
+### 1. Modern WebUI Live Server (FastAPI + Tailwind)
 ```bash
 uv run ytdl-web
-# or: uv run python ytdl_web.py
+# or: uv run python server.py
 ```
-*Opens a sleek borderless native desktop window powered by WebView2 with Tailwind CSS, live debounced preview, animated progress/speed/ETA, and download history.*
+*Starts the local FastAPI server at `http://127.0.0.1:8000` and automatically opens it in your default browser. Features instant video ID thumbnail extraction, live metadata preview, quick folder presets (`Desktop (D:)`, `Downloads`, `Music`), native folder browser, live transfer speed/ETA, and full download history.*
 
 ### 2. Classic CustomTkinter Desktop Client
 ```bash

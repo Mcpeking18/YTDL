@@ -205,3 +205,4 @@ class DownloaderAPI:
         """Clears download history."""
         clear_history_file()
         return []
+

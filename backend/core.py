@@ -33,6 +33,32 @@ def get_default_download_dir() -> Path:
     return downloads if downloads.is_dir() else Path.home()
 
 
+def get_common_folder_presets() -> list[dict]:
+    """Returns a list of common accessible download folders for quick 1-click selection."""
+    presets = []
+    d_desktop = Path("D:/Desktop")
+    if d_desktop.is_dir():
+        presets.append({"label": "Desktop (D:)", "path": str(d_desktop)})
+
+    c_desktop = Path.home() / "Desktop"
+    if c_desktop.is_dir() and c_desktop != d_desktop:
+        presets.append({"label": "Desktop (C:)", "path": str(c_desktop)})
+
+    downloads = Path.home() / "Downloads"
+    if downloads.is_dir():
+        presets.append({"label": "Downloads", "path": str(downloads)})
+
+    music = Path.home() / "Music"
+    if music.is_dir():
+        presets.append({"label": "Music", "path": str(music)})
+
+    videos = Path.home() / "Videos"
+    if videos.is_dir():
+        presets.append({"label": "Videos", "path": str(videos)})
+
+    return presets
+
+
 def resolve_unique_path(directory: Path, filename: str) -> Path:
     """Prevents file overwrite by appending (1), (2), etc."""
     destination = directory / filename
@@ -69,6 +95,34 @@ def open_in_explorer(target_path: Path) -> None:
         pass
 
 
+def open_folder_picker(initial_dir: str = "") -> str:
+    """Invokes native Windows folder picker in a subprocess without freezing."""
+    if not sys.platform.startswith("win"):
+        return initial_dir
+    try:
+        init_path = initial_dir if (initial_dir and Path(initial_dir).is_dir()) else str(get_default_download_dir())
+        ps_script = (
+            "Add-Type -AssemblyName System.Windows.Forms; "
+            "$f = New-Object System.Windows.Forms.FolderBrowserDialog; "
+            f"$f.SelectedPath = '{init_path}'; "
+            "$f.Description = 'Select Download Folder'; "
+            "$f.ShowNewFolderButton = $true; "
+            "if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { Write-Output $f.SelectedPath }"
+        )
+        proc = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", ps_script],
+            capture_output=True,
+            text=True,
+            timeout=40,
+        )
+        selected = proc.stdout.strip()
+        if selected and Path(selected).is_dir():
+            return selected
+        return initial_dir
+    except Exception:
+        return initial_dir
+
+
 def extract_youtube_video_id(url: str) -> str | None:
     """Extracts 11-char video ID from standard/short/music YouTube URLs."""
     patterns = [
@@ -100,6 +154,79 @@ def extract_bitrate_number(quality_str: str) -> str:
     """Extracts numeric bitrate from strings like '320 kbps' or '192 kbps'."""
     match = re.search(r"(\d+)", quality_str)
     return match.group(1) if match else "192"
+
+
+def fetch_metadata_preview(url: str) -> dict:
+    """
+    Fetches video or playlist metadata and thumbnail URL.
+    Guarantees a thumbnail if a valid YouTube video ID is found.
+    """
+    url = url.strip()
+    if not url:
+        return {"success": False, "error": "URL cannot be empty"}
+
+    video_id = extract_youtube_video_id(url)
+    default_thumb = f"https://img.youtube.com/vi/{video_id}/mqdefault.jpg" if video_id else ""
+
+    try:
+        ydl_opts = {
+            "quiet": True,
+            "no_warnings": True,
+            "skip_download": True,
+            "extract_flat": True,
+        }
+        with YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+
+        if not info:
+            if video_id:
+                return {
+                    "success": True,
+                    "title": "YouTube Video",
+                    "details": "Ready to download",
+                    "thumbnail": default_thumb,
+                    "is_playlist": False,
+                }
+            return {"success": False, "error": "Could not fetch metadata for this URL"}
+
+        is_playlist = (info.get("_type") == "playlist") or is_playlist_url(url)
+        if is_playlist and info.get("entries"):
+            playlist_title = info.get("title") or "YouTube Playlist"
+            entries = list(info.get("entries") or [])
+            count = len(entries) if entries else info.get("playlist_count") or 0
+            title = f"📁 {playlist_title}"
+            details = f"Playlist ({count} videos) • No cookies required"
+
+            thumb = default_thumb
+            if not thumb and entries and entries[0]:
+                thumb = entries[0].get("thumbnail") or entries[0].get("thumbnails", [{}])[-1].get("url") or ""
+            if not thumb and info.get("thumbnails"):
+                thumb = info["thumbnails"][-1].get("url") or ""
+        else:
+            title = info.get("title") or "Unknown Video"
+            channel = info.get("uploader") or info.get("channel") or ""
+            dur_str = format_duration(info.get("duration"))
+            details_parts = [p for p in (channel, dur_str) if p]
+            details = " • ".join(details_parts) if details_parts else "YouTube Video"
+            thumb = default_thumb or info.get("thumbnail") or ""
+
+        return {
+            "success": True,
+            "title": title,
+            "details": details,
+            "thumbnail": thumb,
+            "is_playlist": is_playlist,
+        }
+    except Exception as e:
+        if video_id:
+            return {
+                "success": True,
+                "title": "YouTube Video",
+                "details": f"ID: {video_id} • Ready",
+                "thumbnail": default_thumb,
+                "is_playlist": False,
+            }
+        return {"success": False, "error": clean_error_message(str(e))}
 
 
 def build_ydl_options(temp_dir: str, format_type: str, quality: str, progress_hook) -> dict:

@@ -14,14 +14,24 @@ from ytdl import (
     extract_youtube_video_id,
     format_duration,
     get_default_download_dir,
+    get_ytdlp_version,
     is_playlist_url,
     load_history,
     resolve_unique_path,
     save_history_entry,
+    set_history_file_path,
 )
 
 
 class TestYTDL(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.test_hist = Path(self.tmp_dir.name) / "test_hist.json"
+        set_history_file_path(self.test_hist)
+
+    def tearDown(self):
+        set_history_file_path(None)
+        self.tmp_dir.cleanup()
     def test_default_download_dir_exists(self):
         download_dir = get_default_download_dir()
         self.assertIsInstance(download_dir, Path)
@@ -128,6 +138,11 @@ class TestYTDL(unittest.TestCase):
 
         clear_history_file()
         self.assertEqual(load_history(), [])
+
+    def test_get_ytdlp_version(self):
+        ver = get_ytdlp_version()
+        self.assertIsInstance(ver, str)
+        self.assertNotEqual(ver, "unknown")
 
     def test_app_lifecycle(self):
         app = YTDLApp()

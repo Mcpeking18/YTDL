@@ -24,12 +24,14 @@ from backend.core import (
     fetch_metadata_preview,
     get_common_folder_presets,
     get_default_download_dir,
+    get_ytdlp_version,
     load_history,
     log_error,
     open_folder_picker,
     open_in_explorer,
     resolve_unique_path,
     save_history_entry,
+    update_ytdlp_via_uv,
 )
 
 ROOT_DIR = Path(__file__).parent
@@ -78,9 +80,18 @@ def get_state():
     return {
         "default_dir": str(get_default_download_dir()),
         "ffmpeg_installed": check_ffmpeg(),
+        "ytdlp_version": get_ytdlp_version(),
         "presets": get_common_folder_presets(),
         "history": load_history(),
     }
+
+
+@app.post("/api/update-ytdlp")
+async def update_ytdlp():
+    """Triggers background uv upgrade for yt-dlp."""
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, update_ytdlp_via_uv)
+    return result
 
 
 @app.get("/api/preview")

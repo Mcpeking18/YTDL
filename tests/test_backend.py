@@ -11,15 +11,26 @@ from backend.core import (
     extract_youtube_video_id,
     format_duration,
     get_default_download_dir,
+    get_ytdlp_version,
     is_playlist_url,
     load_history,
     resolve_unique_path,
     save_history_entry,
+    set_history_file_path,
 )
 from backend.api import DownloaderAPI
 
 
 class TestBackend(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.test_hist_file = Path(self.tmp_dir.name) / "test_history.json"
+        set_history_file_path(self.test_hist_file)
+
+    def tearDown(self):
+        set_history_file_path(None)
+        self.tmp_dir.cleanup()
+
     def test_default_download_dir(self):
         download_dir = get_default_download_dir()
         self.assertIsInstance(download_dir, Path)
@@ -49,7 +60,7 @@ class TestBackend(unittest.TestCase):
         self.assertEqual(opts["format"], "bestaudio/best")
         self.assertTrue(opts["ignoreerrors"])
 
-    def test_history(self):
+    def test_history_isolated(self):
         clear_history_file()
         self.assertEqual(load_history(), [])
 
@@ -61,6 +72,11 @@ class TestBackend(unittest.TestCase):
         clear_history_file()
         self.assertEqual(load_history(), [])
 
+    def test_get_ytdlp_version(self):
+        ver = get_ytdlp_version()
+        self.assertIsInstance(ver, str)
+        self.assertNotEqual(ver, "unknown")
+
     def test_api_initial_state(self):
         api = DownloaderAPI()
         state = api.get_initial_state()
@@ -71,4 +87,3 @@ class TestBackend(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -296,6 +296,73 @@ def log_error(url: str, error_message: str) -> None:
         file.write(f"[{timestamp}] URL: {url} | Error: {error_message}\n")
 
 
+def set_history_file_path(path: Path | None = None) -> None:
+    """Sets a custom history file path (useful for testing without touching live history)."""
+    global HISTORY_FILE
+    HISTORY_FILE = path if path else (ROOT_DIR / "history.json")
+
+
+def get_ytdlp_version() -> str:
+    """Returns the currently installed yt-dlp version string."""
+    try:
+        import yt_dlp.version
+        return getattr(yt_dlp.version, "__version__", "unknown")
+    except Exception:
+        return "unknown"
+
+
+def update_ytdlp_via_uv() -> dict:
+    """Runs 'uv lock --upgrade-package yt-dlp' and 'uv sync' in the project root."""
+    uv_path = shutil.which("uv")
+    if not uv_path:
+        return {"success": False, "error": "uv is not installed or not on PATH."}
+    try:
+        old_version = get_ytdlp_version()
+
+        # 1. Upgrade yt-dlp in uv.lock
+        proc = subprocess.run(
+            [uv_path, "lock", "--upgrade-package", "yt-dlp"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if proc.returncode != 0:
+            return {"success": False, "error": proc.stderr.strip() or "Failed to lock yt-dlp"}
+
+        # 2. Sync the virtual environment
+        sync_proc = subprocess.run(
+            [uv_path, "sync"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if sync_proc.returncode != 0:
+            return {"success": False, "error": sync_proc.stderr.strip() or "Failed to sync virtual environment"}
+
+        # 3. Query new version from the virtual environment
+        ver_proc = subprocess.run(
+            [uv_path, "run", "python", "-c", "import yt_dlp.version; print(yt_dlp.version.__version__)"],
+            cwd=str(ROOT_DIR),
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        new_version = ver_proc.stdout.strip() if ver_proc.returncode == 0 else get_ytdlp_version()
+        is_updated = (new_version != old_version)
+
+        return {
+            "success": True,
+            "version": new_version,
+            "old_version": old_version,
+            "updated": is_updated,
+            "message": f"Updated to v{new_version}!" if is_updated else f"Already on latest v{new_version}",
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 def load_history() -> list[dict]:
     """Loads recent download history from history.json."""
     if HISTORY_FILE.exists():

@@ -48,16 +48,24 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="flex items-center gap-1 bg-yt-card border border-yt-cardBorder p-1 rounded-xl">
-        <button id="tab-btn-downloader" class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200">
-          Downloader
+      <div class="flex items-center gap-2">
+        <!-- 1-Click uv yt-dlp Update Button -->
+        <button id="update-ytdlp-btn" type="button" class="bg-yt-card border border-yt-cardBorder hover:border-neutral-600 active:scale-95 text-yt-subtext hover:text-white px-2.5 py-1.5 rounded-xl text-[11px] font-mono transition-all duration-200 flex items-center gap-1.5 shadow-sm" title="Click to upgrade yt-dlp via uv">
+          <span id="ytdlp-version-label">yt-dlp</span>
+          <span id="update-spin-icon" class="text-xs">🔄</span>
         </button>
-        <button id="tab-btn-history" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-yt-subtext hover:text-white transition-all duration-200 flex items-center gap-1.5">
-          History
-          <span id="history-badge" class="bg-yt-secondary text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
-        </button>
-      </nav>
+
+        <!-- Navigation Tabs -->
+        <nav class="flex items-center gap-1 bg-yt-card border border-yt-cardBorder p-1 rounded-xl">
+          <button id="tab-btn-downloader" class="tab-btn active px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200">
+            Downloader
+          </button>
+          <button id="tab-btn-history" class="tab-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-yt-subtext hover:text-white transition-all duration-200 flex items-center gap-1.5">
+            History
+            <span id="history-badge" class="bg-yt-secondary text-[10px] px-1.5 py-0.2 rounded-full hidden">0</span>
+          </button>
+        </nav>
+      </div>
     </header>
 
     <!-- Startup Warning: FFmpeg Missing (Hidden by default) -->

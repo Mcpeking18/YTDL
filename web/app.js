@@ -36,6 +36,9 @@ const historyList = document.getElementById("history-list");
 const historyBadge = document.getElementById("history-badge");
 const clearHistoryBtn = document.getElementById("clear-history-btn");
 const ffmpegBanner = document.getElementById("ffmpeg-banner");
+const updateYtdlpBtn = document.getElementById("update-ytdlp-btn");
+const ytdlpVersionLabel = document.getElementById("ytdlp-version-label");
+const updateSpinIcon = document.getElementById("update-spin-icon");
 
 const AUDIO_QUALITIES = [
   "320 kbps (High)",
@@ -61,6 +64,9 @@ async function initApp() {
 
     if (state.default_dir) {
       folderInput.value = state.default_dir;
+    }
+    if (state.ytdlp_version && ytdlpVersionLabel) {
+      ytdlpVersionLabel.innerText = `yt-dlp v${state.ytdlp_version}`;
     }
     if (!state.ffmpeg_installed) {
       ffmpegBanner.classList.remove("hidden");
@@ -89,6 +95,44 @@ async function initApp() {
 }
 
 document.addEventListener("DOMContentLoaded", initApp);
+
+// 1.1 One-Click uv Update yt-dlp
+if (updateYtdlpBtn) {
+  updateYtdlpBtn.addEventListener("click", async () => {
+    updateYtdlpBtn.disabled = true;
+    updateSpinIcon.classList.add("animate-spin");
+    ytdlpVersionLabel.innerText = "Checking via uv...";
+
+    try {
+      const res = await fetch("/api/update-ytdlp", { method: "POST" });
+      const data = await res.json();
+      updateSpinIcon.classList.remove("animate-spin");
+
+      if (data.success) {
+        ytdlpVersionLabel.innerText = data.updated ? `v${data.version} (Updated!)` : `v${data.version} (Latest)`;
+        setTimeout(() => {
+          ytdlpVersionLabel.innerText = `yt-dlp v${data.version}`;
+          updateYtdlpBtn.disabled = false;
+        }, 3000);
+      } else {
+        ytdlpVersionLabel.innerText = "Update error";
+        console.error(data.error);
+        setTimeout(() => {
+          ytdlpVersionLabel.innerText = "yt-dlp";
+          updateYtdlpBtn.disabled = false;
+        }, 3000);
+      }
+    } catch (err) {
+      updateSpinIcon.classList.remove("animate-spin");
+      ytdlpVersionLabel.innerText = "Network error";
+      console.error(err);
+      setTimeout(() => {
+        ytdlpVersionLabel.innerText = "yt-dlp";
+        updateYtdlpBtn.disabled = false;
+      }, 3000);
+    }
+  });
+}
 
 // 2. Navigation Tabs
 tabBtnDownloader.addEventListener("click", () => {

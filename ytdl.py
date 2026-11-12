@@ -222,10 +222,79 @@ def clean_error_message(raw_error: str) -> str:
     return cleaned[6:].strip() if cleaned.startswith("ERROR:") else cleaned
 
 
+def set_history_file_path(path: Path | None = None) -> None:
+    """Sets a custom history file path (useful for testing without touching live history)."""
+    global HISTORY_FILE
+    HISTORY_FILE = path if path else (Path(__file__).parent / "history.json")
+
+
+def get_ytdlp_version() -> str:
+    """Returns the currently installed yt-dlp version string."""
+    try:
+        import yt_dlp.version
+        return getattr(yt_dlp.version, "__version__", "unknown")
+    except Exception:
+        return "unknown"
+
+
+def update_ytdlp_via_uv() -> dict:
+    """Runs 'uv lock --upgrade-package yt-dlp' and 'uv sync' in the project root."""
+    uv_path = shutil.which("uv")
+    if not uv_path:
+        return {"success": False, "error": "uv is not installed or not on PATH."}
+    root_dir = Path(__file__).parent
+    try:
+        old_version = get_ytdlp_version()
+
+        # 1. Upgrade yt-dlp in uv.lock
+        proc = subprocess.run(
+            [uv_path, "lock", "--upgrade-package", "yt-dlp"],
+            cwd=str(root_dir),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if proc.returncode != 0:
+            return {"success": False, "error": proc.stderr.strip() or "Failed to lock yt-dlp"}
+
+        # 2. Sync the virtual environment
+        sync_proc = subprocess.run(
+            [uv_path, "sync"],
+            cwd=str(root_dir),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if sync_proc.returncode != 0:
+            return {"success": False, "error": sync_proc.stderr.strip() or "Failed to sync virtual environment"}
+
+        # 3. Query new version from the virtual environment
+        ver_proc = subprocess.run(
+            [uv_path, "run", "python", "-c", "import yt_dlp.version; print(yt_dlp.version.__version__)"],
+            cwd=str(root_dir),
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        new_version = ver_proc.stdout.strip() if ver_proc.returncode == 0 else get_ytdlp_version()
+        is_updated = (new_version != old_version)
+
+        return {
+            "success": True,
+            "version": new_version,
+            "old_version": old_version,
+            "updated": is_updated,
+            "message": f"Updated to v{new_version}!" if is_updated else f"Already on latest v{new_version}",
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+
 def log_error(url: str, error_message: str) -> None:
     """Appends timestamped error details to 'errors.txt'."""
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    with open("errors.txt", "a", encoding="utf-8") as file:
+    err_file = Path(__file__).parent / "errors.txt"
+    with open(err_file, "a", encoding="utf-8") as file:
         file.write(f"[{timestamp}] URL: {url} | Error: {error_message}\n")
 
 
@@ -340,22 +409,38 @@ class YTDLApp(ctk.CTk):
         )
         self.title_label.pack(side="left")
 
-        # Right side of header: History Button
+        # Right side of header: Update Pill & History Button
         self.history_btn = ctk.CTkButton(
             self.header_frame,
             text="📜 History",
-            width=84,
-            height=32,
+            width=78,
+            height=30,
             fg_color=COLOR_BUTTON_SECONDARY,
             hover_color=COLOR_BUTTON_SEC_HOVER,
             border_color=COLOR_INPUT_BORDER,
             border_width=1,
             text_color=COLOR_TEXT_PRIMARY,
-            font=ctk.CTkFont(family="Segoe UI", size=12),
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             corner_radius=8,
             command=self.open_history_window,
         )
         self.history_btn.pack(side="right")
+
+        self.update_btn = ctk.CTkButton(
+            self.header_frame,
+            text=f"yt-dlp v{get_ytdlp_version()} 🔄",
+            width=135,
+            height=30,
+            fg_color=COLOR_BUTTON_SECONDARY,
+            hover_color=COLOR_BUTTON_SEC_HOVER,
+            border_color=COLOR_INPUT_BORDER,
+            border_width=1,
+            text_color=COLOR_TEXT_SECONDARY,
+            font=ctk.CTkFont(family="Segoe UI", size=10),
+            corner_radius=8,
+            command=self.start_ytdlp_update_thread,
+        )
+        self.update_btn.pack(side="right", padx=(0, 6))
 
         # Startup FFmpeg warning banner if FFmpeg is missing from PATH
         if not self.ffmpeg_installed:
@@ -728,6 +813,29 @@ class YTDLApp(ctk.CTk):
         self.preview_details.configure(text=details)
 
     # --- UI & Download Handlers ---
+
+    def start_ytdlp_update_thread(self):
+        """Runs yt-dlp update check via uv in a background thread."""
+        self.update_btn.configure(state="disabled", text="Updating via uv...")
+        self.update_status("● Checking for yt-dlp updates via uv...", "#ffd700")
+
+        def worker():
+            res = update_ytdlp_via_uv()
+
+            def on_done():
+                self.update_btn.configure(state="normal")
+                if res.get("success"):
+                    ver = res.get("version", "")
+                    msg = res.get("message", "Up to date")
+                    self.update_btn.configure(text=f"yt-dlp v{ver} 🔄")
+                    self.update_status(f"✔ {msg}", "#00e676")
+                else:
+                    self.update_btn.configure(text=f"yt-dlp v{get_ytdlp_version()} 🔄")
+                    self.update_status(f"✖ Update error: {res.get('error')}", "#ff4d4d")
+
+            self.after(0, on_done)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def browse_folder(self):
         selected_dir = filedialog.askdirectory(initialdir=self.output_dir_var.get())

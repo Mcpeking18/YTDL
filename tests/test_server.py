@@ -1,11 +1,22 @@
+import tempfile
 import unittest
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 from server import app
+from backend.core import set_history_file_path
 
 
 class TestServer(unittest.TestCase):
     def setUp(self):
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.test_hist = Path(self.tmp_dir.name) / "test_hist.json"
+        set_history_file_path(self.test_hist)
         self.client = TestClient(app)
+
+    def tearDown(self):
+        set_history_file_path(None)
+        self.tmp_dir.cleanup()
 
     def test_serve_frontend(self):
         res = self.client.get("/")
@@ -25,6 +36,7 @@ class TestServer(unittest.TestCase):
         self.assertIn("default_dir", data)
         self.assertIn("ffmpeg_installed", data)
         self.assertIn("presets", data)
+        self.assertIn("ytdlp_version", data)
 
     def test_api_preview_valid_url(self):
         res = self.client.get("/api/preview?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ")
